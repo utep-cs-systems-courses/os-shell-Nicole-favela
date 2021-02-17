@@ -36,6 +36,8 @@ def exec(args):
                     os.execve(program, args, os.environ)
                 except FileNotFoundError:
                     pass
+            elif '>' in args or '<' in args:
+                redirect(args)
             else:
                 for dir in re.split(":", os.environ['PATH']):#split by colon
                     program = "%s/%s" % (dir, args[0])
@@ -58,6 +60,8 @@ def command(args):
             os.execve(program, args, os.environ)
         except FileNotFoundError:
             pass
+    elif ">" in args or "<" in args:#for redirection
+        redirect(args)
     else:
         for dir in re.split(":", os.environ['PATH']):#try next directory
             program = "%s/%s" % (dir, arg[0])
@@ -67,6 +71,27 @@ def command(args):
                 pass #failed
     os.write(2, ("%s: command not found\n" % args[0].encode()))
     sys.exit(0) #exits
+def redirect(args):
+    if '>' in args:
+        os.close(1) #close fd1
+        os.open(args[args.index('>')+1], os.O_CREAT | os.O_WRONLY)#create file if there isnt one or wrtie to file
+        os.set_inheritable(1,True)#take fd(0) and makes sure it is inheritable
+        args.remove(args[args.index('>')+1])
+        args.remove('>')
+    else: 
+        os.close(0) #closes file descriptor 0 attached to standard input of keyboard
+        os.open(args[args.index('<')+1], os.O_RDONLY) #write only
+        os.set_inheritable(0,True) #fd(0) is attached to kbd
+        args.remove(args[args.index('<') + 1])
+        args.remove('<')
+    for i in re.split(":", os.environ['PATH']):
+        program = "%s/%s" % (i, args[0])
+        try:
+            os.execve(program, args, os.environ) #try to run
+        except FileNotFoundError:
+            pass #couldnt find file
+    os.write(2, ("%s command not found\n" % args[0]).encode())#write error message to display
+    sys.exit(0)
 while True:
         if 'PS1'in os.environ:
              os.write(1, (os.environ['PS1']).encode())
@@ -80,4 +105,4 @@ while True:
         #splits
         for i in args: #splits up string 
              exec(i.split())
-            
+        
