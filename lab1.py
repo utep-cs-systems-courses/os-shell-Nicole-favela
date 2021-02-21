@@ -137,6 +137,6 @@ def prompt():
              os.write(1, (os.environ['PS1']).encode())
         else:
              os.write(1, ("$ ").encode())# shows$ prompt if PS1 environ not found
-while True:
-        readLine()#reads lines of input from user 
+
+readLine()#reads lines of input from user 
         
