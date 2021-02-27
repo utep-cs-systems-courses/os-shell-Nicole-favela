@@ -2,7 +2,8 @@
 
 import os, sys, re
 pid = os.getpid()
-
+start = 0
+max = 0
 def exec(args): #exec process
     if len(args) == 0: #if string length is 0 
         return
@@ -95,16 +96,36 @@ def redirect(args):
             pass #couldnt find file, fail quietly
     os.write(2, ("%s command not found\n" % args[0]).encode())#write error message to display
     sys.exit(0)#exits 
+
+#creates line from chars for use in 
 def readLine():
-    numLine = 1 #counts number of lines
-    while 1: #keeps looping
-        prompt()#keeps showing prompt
-        args = os.read(0,1000)#gets 100 bytes of info
-        buffer = args.decode()# changes bytes to array of chars
-        lineBuffer = buffer.splitlines() #breaks lines by end of line
-        for i in lineBuffer: #iterates lines
-            exec(i.split())#splits lines by space and gives arguments to exec()
-            numLine +=1
+    global start
+    global max 
+    line = ""
+    char = getChar()
+    while(char != "EOF" and char != ''):
+        line+=char #accumultes chars 
+        char = getChar() #gets chars to accumulate in line
+    start = 0
+    max = 0
+    return line #returns string
+#gets chars
+def getChar():
+    #start and max used to indicate start of array and max chars 
+    global start
+    global max 
+    if start== max: #initially 0=0, 
+        start = 0
+        max = os.read(0,1000) #fill with 1000 bytes
+        
+        if max == 0:
+            return "EOF"
+    if start < len(max)-1: #we need to fill array
+        charArray = chr(max[start]) #returns string representing a char
+        start+=1
+        return charArray
+    else:
+        return "EOF"
  
 def pipe(args):
     leftSide = args[0:args.index("|")] #gets command to left of pipe
@@ -121,6 +142,7 @@ def pipe(args):
         for fd in (pw,pr):#pr for read, pw for write
             os.close(fd) #closes fds for read/write
         command(leftSide) #calls command on left command
+    
     else: #parent process
         os.close(0) #close fd 0 attached to kbd
         os.dup(pr)
@@ -138,5 +160,10 @@ def prompt():
         else:
              os.write(1, ("$ ").encode())# shows$ prompt if PS1 environ not found
 
-readLine()#reads lines of input from user 
-        
+while 1:
+    prompt()
+    myline = readLine()#reads lines of input from user 
+    lineArgs= myline.split()
+    #print(lineArgs)
+    
+    exec(lineArgs) #executes commnands
