@@ -164,6 +164,5 @@ while 1:
     prompt()
     myline = readLine()#reads lines of input from user 
     lineArgs= myline.split()
-    #print(lineArgs)
-    
+     
     exec(lineArgs) #executes commnands
