@@ -22,8 +22,7 @@ def exec(args): #exec process
         except:
             os.write(1, ("cd %s: no such file/directory" % args[1]).encode())#writes to display
             pass
-    elif "|" in args: #for pipe command
-        pipe(args)
+    
     elif "pwd" == args[0]:#prints current working directory 
         path = os.getcwd()
         os.write(1,("%s\n" % path).encode())#string to bits 
@@ -44,6 +43,8 @@ def exec(args): #exec process
                     pass #...fail quietly
             elif '>' in args or '<' in args:
                 redirect(args)
+            elif "|" in args:
+                pipe(args)
             else:
                 for dir in re.split(":", os.environ['PATH']):#try each directory
                     program = "%s/%s" % (dir, args[0])
@@ -103,7 +104,7 @@ def readLine():
     global max 
     line = ""
     char = getChar()
-    while(char != "EOF" and char != ''):
+    while(char != "EOF" and char != ''and char != '\n'):
         line+=char #accumultes chars 
         char = getChar() #gets chars to accumulate in line
     start = 0
